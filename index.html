@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="format-detection" content="telephone=no">
+<title>출퇴근</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:#f5f5f7}
+body{color:#1d1d1f;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;font-weight:400;font-size:17px;line-height:1.4}
+#app{max-width:440px;margin:0 auto;padding:22px 18px 40px}
+.app{font-size:14px;color:#6e6e73;text-align:center}
+.nm{font-size:32px;font-weight:600;text-align:center;margin-top:20px;letter-spacing:-.3px}
+.dt{text-align:center;color:#6e6e73;margin-top:4px;font-size:17px}
+.clk{text-align:center;font-size:60px;font-weight:600;letter-spacing:-1px;margin-top:20px;font-variant-numeric:tabular-nums}
+.big{display:flex;align-items:center;justify-content:center;width:100%;margin-top:20px;height:84px;border-radius:999px;border:0;background:#0066cc;color:#fff;font-size:30px;font-weight:600;font-family:inherit}
+.big.out{background:#1d1d1f}
+.big.off{background:#fff;color:#86868b;border:1px solid #d2d2d7;font-size:24px}
+.big:disabled{opacity:.55}
+.msg{min-height:26px;margin-top:12px;text-align:center;font-size:17px;font-weight:600;color:#1a7f37}
+.msg.bad{color:#c00000}
+.card{margin-top:14px;background:#fff;border:1px solid #d2d2d7;border-radius:18px;padding:12px 16px}
+.r{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:18px}
+.r b{font-weight:600;font-variant-numeric:tabular-nums}
+.r.s{font-size:16px;color:#3a3a3c}
+.tag{display:inline-block;font-size:14px;font-weight:600;border-radius:999px;padding:3px 11px}
+.tag.g{background:#e8f6ec;color:#1a7f37}
+.tag.n{background:#f5f5f7;color:#6e6e73}
+.warn{margin-top:14px;background:#fff4e0;color:#8a4b00;border-radius:18px;padding:12px 16px;font-size:16px}
+.cap{font-size:14px;color:#6e6e73;margin:18px 4px 0}
+.lnk{display:block;width:100%;margin-top:20px;background:none;border:0;color:#0066cc;font-size:17px;font-family:inherit;padding:10px}
+.fx label{display:block;font-size:15px;color:#6e6e73;margin-top:12px}
+.fx select,.fx input{width:100%;height:54px;margin-top:6px;border:1px solid #d2d2d7;border-radius:14px;background:#fff;font-size:20px;font-family:inherit;padding:0 14px;color:#1d1d1f}
+.two{display:flex;gap:10px}
+.two > div{flex:1}
+.btn{flex:1;height:56px;border-radius:999px;border:1px solid #d2d2d7;background:#fff;color:#0066cc;font-size:19px;font-weight:600;font-family:inherit}
+.btn.p{background:#0066cc;border-color:#0066cc;color:#fff}
+.center{text-align:center;margin-top:80px}
+.center h1{font-size:24px;font-weight:600}
+.center p{margin-top:12px;color:#6e6e73}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="config.js"></script>
+<script>
+var FIX_DAYS = 7;
+var KEY = (location.search.match(/[?&]k=([0-9a-zA-Z]+)/) || [])[1] || '';
+var S = { mode: 'wait' };
+var OFF = 0, busy = false, fixOpen = false, loadedAt = 0, msgBad = false;
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function el(id) { return document.getElementById(id); }
+function clock() {
+  var d = new Date(new Date().getTime() + OFF + 9 * 3600000);
+  return ('0' + d.getUTCHours()).slice(-2) + ':' + ('0' + d.getUTCMinutes()).slice(-2);
+}
+
+/* 날짜·시간 글 */
+function utc_(d) { var p = d.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]); }
+function shiftDate_(d, n) { return new Date(utc_(d) + n * 86400000).toISOString().slice(0, 10); }
+function mins_(t) { var p = t.split(':'); return +p[0] * 60 + +p[1]; }
+function dow_(d) { return '일월화수목금토'.charAt(new Date(utc_(d)).getUTCDay()); }
+function md_(d) { return d.slice(5, 7) + '/' + d.slice(8, 10); }
+function label_(d) { return (+d.slice(5, 7)) + '월 ' + (+d.slice(8, 10)) + '일 ' + dow_(d) + '요일'; }
+function durLabel_(a, b) {
+  var x = mins_(b) - mins_(a);
+  if (x < 0) x += 1440;
+  var h = Math.floor(x / 60), m = x % 60;
+  return (h ? h + '시간 ' : '') + m + '분';
+}
+
+/* 서버가 준 것(지금 상태 + 최근 줄)으로 화면에 쓸 글을 만듦 */
+function build(raw) {
+  if (!raw || raw.mode !== 'work') return raw || { mode: 'blocked', title: '' };
+  var rows = raw.rows || [], cur = null, i;
+  for (i = 0; i < rows.length; i++) if (raw.curD && rows[i].d === raw.curD) { cur = rows[i]; break; }
+  var st = {
+    mode: 'work', key: raw.key, title: raw.title, name: raw.name,
+    today: raw.today, todayLabel: label_(raw.today), nowMs: raw.nowMs,
+    status: raw.status, tin: '', tout: '', worked: '', workLabel: '', missing: '', recent: [], days: [],
+    msg: raw.msg || '', fixErr: !!raw.fixErr
+  };
+  if (cur) {
+    st.tin = cur.tin; st.tout = cur.tout;
+    if (cur.d !== raw.today) st.workLabel = md_(cur.d) + ' ' + dow_(cur.d) + ' 출근';
+    if (cur.tin && cur.tout) st.worked = durLabel_(cur.tin, cur.tout);
+  }
+  var oldest = shiftDate_(raw.today, -(FIX_DAYS - 1));
+  for (i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    if (!st.missing && r.tin && !r.tout && r !== cur && r.d >= oldest) st.missing = md_(r.d) + ' ' + dow_(r.d);
+    if (r === cur) continue;
+    if (st.recent.length < 5) st.recent.push({ d: md_(r.d) + ' ' + dow_(r.d), tin: r.tin, tout: r.tout });
+  }
+  for (var n = 0; n < FIX_DAYS; n++) {
+    var d = shiftDate_(raw.today, -n), hit = null;
+    for (var j = 0; j < rows.length; j++) if (rows[j].d === d) { hit = rows[j]; break; }
+    st.days.push({ v: d, t: md_(d) + ' ' + dow_(d) + (n === 0 ? ' (오늘)' : n === 1 ? ' (어제)' : ''), tin: hit ? hit.tin : '', tout: hit ? hit.tout : '' });
+  }
+  return st;
+}
+
+function render() {
+  var h = '';
+  if (S.mode === 'wait') { el('app').innerHTML = '<div class="center"><p>불러오는 중…</p></div>'; return; }
+  if (S.mode === 'fail') {
+    el('app').innerHTML = '<div class="center"><h1>불러오지 못했습니다</h1><p>인터넷 연결을 확인하고 다시 눌러 주세요.</p><button class="big" id="re" style="margin-top:30px">다시 열기</button></div>';
+    el('re').onclick = function () { S = { mode: 'wait' }; render(); first(); };
+    return;
+  }
+  if (S.mode === 'blocked') {
+    h = '<div class="app">' + esc(S.title) + '</div><div class="center"><h1>이 주소는 쓸 수 없습니다</h1><p>관리자에게 새 주소를 받아 주세요.</p></div>';
+    el('app').innerHTML = h;
+    return;
+  }
+  if (S.nowMs) { OFF = S.nowMs - new Date().getTime(); S.nowMs = 0; loadedAt = new Date().getTime(); }
+  if (S.title) document.title = S.title + ' 출퇴근';
+
+  h += '<div class="app">' + esc(S.title) + '</div>';
+  h += '<div class="nm">' + esc(S.name) + ' 님</div>';
+  h += '<div class="dt">' + esc(S.todayLabel) + '</div>';
+  if (S.status === 'done') {
+    h += '<div class="big off">오늘 기록 끝</div>';
+  } else {
+    h += '<div class="clk" id="clk">' + clock() + '</div>';
+    h += S.status === 'in'
+      ? '<button class="big out" id="go" data-k="out">퇴근</button>'
+      : '<button class="big" id="go" data-k="in">출근</button>';
+  }
+  h += '<div class="msg' + (msgBad ? ' bad' : '') + '" id="msg">' + esc(S.msg || '') + '</div>';
+
+  h += '<div class="card">';
+  if (S.status === 'none') {
+    h += '<div class="r"><span>오늘</span><span class="tag n">아직 기록 없음</span></div>';
+  } else {
+    h += '<div class="r"><span>' + (S.workLabel ? esc(S.workLabel) : '출근') + '</span><b>' + esc(S.tin || '–') + '</b></div>';
+    if (S.status === 'in') h += '<div class="r"><span>지금</span><span class="tag g">일하는 중</span></div>';
+    else {
+      h += '<div class="r"><span>퇴근</span><b>' + esc(S.tout || '–') + '</b></div>';
+      if (S.worked) h += '<div class="r"><span>일한 시간</span><b>' + esc(S.worked) + '</b></div>';
+    }
+  }
+  h += '</div>';
+
+  if (S.missing) h += '<div class="warn">' + esc(S.missing) + ' 퇴근이 안 적혀 있습니다. 아래 「시간 고쳐 적기」로 적어 주세요.</div>';
+
+  if (S.recent && S.recent.length) {
+    h += '<div class="cap">지난 기록</div><div class="card">';
+    for (var i = 0; i < S.recent.length; i++) {
+      var r = S.recent[i];
+      h += '<div class="r s"><span>' + esc(r.d) + '</span><span>' + esc(r.tin || '–') + ' – ' + esc(r.tout || '안 적힘') + '</span></div>';
+    }
+    h += '</div>';
+  }
+
+  if (!fixOpen) {
+    h += '<button class="lnk" id="fxo">누르는 것을 잊었어요 · 시간 고쳐 적기</button>';
+  } else {
+    h += '<div class="cap">시간 고쳐 적기</div><div class="card fx">';
+    h += '<label>날짜<select id="fd">';
+    for (var j = 0; j < S.days.length; j++) h += '<option value="' + esc(S.days[j].v) + '">' + esc(S.days[j].t) + '</option>';
+    h += '</select></label>';
+    h += '<div class="two"><div><label>출근<input type="time" id="fi"></label></div><div><label>퇴근<input type="time" id="fo"></label></div></div>';
+    h += '<div class="two" style="margin-top:16px"><button class="btn" id="fxc">닫기</button><button class="btn p" id="fxs">적기</button></div>';
+    h += '<div class="cap" style="margin:12px 0 2px">고쳐 적은 것은 관리자 화면에 「본인이 고쳐 적음」으로 남습니다.</div>';
+    h += '</div>';
+  }
+  el('app').innerHTML = h;
+
+  if (el('go')) el('go').onclick = function () { send('site_att_punch', { p_k: KEY, p_kind: this.getAttribute('data-k') }, this); };
+  if (el('fxo')) el('fxo').onclick = function () { fixOpen = true; S.msg = ''; render(); el('fd').scrollIntoView(false); };
+  if (el('fxc')) el('fxc').onclick = function () { fixOpen = false; render(); };
+  if (el('fd')) { el('fd').onchange = fillDay; fillDay(); }
+  if (el('fxs')) el('fxs').onclick = function () {
+    send('site_att_fix', { p_k: KEY, p_d: el('fd').value, p_tin: el('fi').value, p_tout: el('fo').value }, this);
+  };
+}
+
+function fillDay() {
+  var v = el('fd').value;
+  for (var i = 0; i < S.days.length; i++) if (S.days[i].v === v) { el('fi').value = S.days[i].tin || ''; el('fo').value = S.days[i].tout || ''; }
+}
+
+/* 서버 함수 부르기 */
+function rpc(fn, args) {
+  return fetch(SITE_ATT.url + '/rest/v1/rpc/' + fn, {
+    method: 'POST',
+    headers: { 'apikey': SITE_ATT.key, 'Authorization': 'Bearer ' + SITE_ATT.key, 'Content-Type': 'application/json' },
+    body: JSON.stringify(args)
+  }).then(function (r) {
+    if (!r.ok) throw new Error('http ' + r.status);
+    return r.json();
+  });
+}
+
+function send(fn, args, btn) {
+  if (busy) return;
+  busy = true;
+  var old = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '적는 중…'; }
+  rpc(fn, args).then(function (raw) {
+    var st = build(raw);
+    busy = false;
+    msgBad = !!st.fixErr || /없습니다|이미/.test(st.msg || '');
+    if (fn === 'site_att_fix' && !st.fixErr) fixOpen = false;
+    S = st;
+    render();
+    window.scrollTo(0, 0);
+  }).catch(function () {
+    busy = false;
+    if (btn) { btn.disabled = false; btn.innerHTML = old; }
+    msgBad = true;
+    if (el('msg')) { el('msg').className = 'msg bad'; el('msg').innerHTML = '적지 못했습니다. 다시 눌러 주세요.'; }
+  });
+}
+
+function refresh() {
+  if (busy || fixOpen || S.mode !== 'work') return;
+  rpc('site_att_load', { p_k: KEY }).then(function (raw) { if (!busy && !fixOpen) { msgBad = false; S = build(raw); render(); } }).catch(function () {});
+}
+
+function first() {
+  if (!KEY) { S = { mode: 'blocked', title: '' }; render(); return; }
+  rpc('site_att_load', { p_k: KEY }).then(function (raw) { S = build(raw); render(); }).catch(function () { S = { mode: 'fail' }; render(); });
+}
+
+render();
+first();
+setInterval(function () { if (el('clk')) el('clk').innerHTML = clock(); }, 5000);
+document.addEventListener('visibilitychange', function () {
+  if (!document.hidden && new Date().getTime() - loadedAt > 60000) refresh();
+});
+</script>
+</body>
+</html>

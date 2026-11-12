@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="format-detection" content="telephone=no">
+<title>출퇴근 관리</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#f5f5f7}
+body{color:#1d1d1f;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;font-weight:400;font-size:15px;line-height:1.4}
+button,input{font-family:inherit}
+button{cursor:pointer}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 28px 40px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.co{font-size:13px;color:#6e6e73}
+h1{font-size:28px;font-weight:600;letter-spacing:-.3px}
+h2{font-size:22px;font-weight:600}
+.tools{display:flex;align-items:center;gap:12px}
+.step{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #d2d2d7;border-radius:999px;padding:4px 6px}
+.step b{font-weight:600;font-size:15px;padding:0 8px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.step button{width:28px;height:28px;border:0;background:none;color:#0066cc;font-size:20px;line-height:1}
+.step button:disabled{color:#c7c7cc;cursor:default}
+.pill{height:36px;padding:0 16px;border-radius:999px;border:1px solid #d2d2d7;background:#fff;color:#0066cc;font-size:14px;font-weight:600;white-space:nowrap}
+.pill.p{background:#0066cc;border-color:#0066cc;color:#fff}
+.pill:disabled{opacity:.5;cursor:default}
+.cols{display:flex;gap:16px;align-items:flex-start}
+.card{background:#fff;border:1px solid #d2d2d7;border-radius:18px}
+.side{width:330px;flex:none;padding:14px 10px 8px}
+.main{flex:1;padding:18px 20px 10px;min-width:0}
+.cap{font-size:13px;color:#6e6e73;padding:0 10px 8px}
+.pr{display:flex;width:100%;justify-content:space-between;align-items:center;gap:8px;padding:10px;border:0;border-radius:12px;background:none;text-align:left;font-size:15px;color:#1d1d1f}
+.pr.on{background:#f5f5f7}
+.pr b{display:block;font-weight:600;font-size:16px}
+.pr.on b{color:#0066cc}
+.pr.off b{color:#86868b}
+.pr span{display:block;font-size:13px;color:#6e6e73;margin-top:1px}
+.tag{font-style:normal;display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.tag.g{background:#e8f6ec;color:#1a7f37}
+.tag.n{background:#f5f5f7;color:#6e6e73}
+.pr.on .tag.n{background:#fff}
+.tag.r{background:#fdecec;color:#c00000}
+.lnk{display:block;border:0;background:none;color:#0066cc;font-size:15px;padding:12px 10px}
+.lnk.s{display:inline-block;font-size:14px;padding:10px 14px 10px 0}
+.ph{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding-bottom:14px}
+.sum{font-size:14px;color:#6e6e73;margin-top:2px}
+.addr{display:flex;align-items:center;gap:10px;font-size:13px;color:#6e6e73;min-width:0}
+code{font-family:ui-monospace,Consolas,monospace;font-size:13px;color:#1d1d1f;background:#f5f5f7;border-radius:8px;padding:5px 9px;white-space:nowrap}
+table{width:100%;border-collapse:collapse}
+th{font-size:13px;font-weight:400;color:#6e6e73;text-align:left;padding:8px 10px;border-bottom:1px solid #d2d2d7;white-space:nowrap}
+td{padding:11px 10px;border-bottom:1px solid #e8e8ed;font-size:15px;font-variant-numeric:tabular-nums}
+td.nw{white-space:nowrap}
+td.act,th.act{text-align:right;width:70px}
+td.act button{border:0;background:none;color:#0066cc;font-size:14px;white-space:nowrap}
+.mut{color:#86868b;font-size:13px}
+.foot{padding-top:2px}
+.empty{padding:26px 10px;color:#6e6e73;text-align:center}
+tr.ed td{background:#f5f5f7;padding:12px 14px}
+.frm{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.frm label{display:block;font-size:13px;color:#6e6e73}
+.frm input{display:block;height:38px;margin-top:4px;border:1px solid #d2d2d7;border-radius:10px;background:#fff;font-size:15px;padding:0 10px;color:#1d1d1f}
+.frm .sp{flex:1}
+.add{padding:4px 10px 8px}
+.add input{width:100%;height:38px;border:1px solid #d2d2d7;border-radius:10px;font-size:15px;padding:0 10px;color:#1d1d1f}
+.add .frm{margin-top:8px}
+.msg{font-size:14px;font-weight:600;color:#1a7f37;padding:8px 10px 0;min-height:0}
+.msg.bad{color:#c00000}
+.ask{background:#f5f5f7;border-radius:12px;padding:12px 14px;margin:6px 0 8px;font-size:14px}
+.ask .frm{margin-top:10px}
+.center{text-align:center;margin-top:90px}
+.center h1{font-size:24px}
+.center p{margin-top:12px;color:#6e6e73}
+@media (max-width:820px){
+  .wrap{padding:18px 14px 30px}
+  .cols{flex-direction:column}
+  .side{width:100%}
+  .main{width:100%;padding:16px 12px 8px}
+  td,th{padding-left:6px;padding-right:6px}
+  td{font-size:14px}
+  code{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app" class="wrap"></div>
+<script src="config.js"></script>
+<script src="xlsx.js"></script>
+<script>
+var M = (location.search.match(/[?&]m=([0-9a-zA-Z_-]+)/) || [])[1] || '';
+var D = null, sel = null, ym = '', busy = false, mode = 'wait';
+var ui = { add: false, edit: '', ren: false, ask: '', msg: '', bad: false, copied: false, sideMsg: '', sideBad: false };
+
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function el(id) { return document.getElementById(id); }
+function utc_(d) { var p = d.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]); }
+function mins_(t) { var p = t.split(':'); return +p[0] * 60 + +p[1]; }
+function dow_(d) { return '일월화수목금토'.charAt(new Date(utc_(d)).getUTCDay()); }
+function md_(d) { return d.slice(5, 7) + '/' + d.slice(8, 10); }
+function label_(d) { return (+d.slice(5, 7)) + '월 ' + (+d.slice(8, 10)) + '일 ' + dow_(d) + '요일'; }
+function worked_(r) { if (!r.tin || !r.tout) return -1; var x = mins_(r.tout) - mins_(r.tin); return x < 0 ? x + 1440 : x; }
+function dur_(x) { return Math.floor(x / 60) + '시간 ' + (x % 60) + '분'; }
+function monthRange(m) {
+  var y = +m.slice(0, 4), mo = +m.slice(5, 7), last = new Date(Date.UTC(y, mo, 0)).getUTCDate();
+  return [m + '-01', m + '-' + ('0' + last).slice(-2)];
+}
+function shiftMonth(m, n) {
+  var d = new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1 + n, 1));
+  return d.toISOString().slice(0, 7);
+}
+function base() { return location.origin + location.pathname.replace(/[^\/]*$/, ''); }
+function person(id) { for (var i = 0; i < D.people.length; i++) if (D.people[i].id === id) return D.people[i]; return null; }
+function rowsOf(id) { return D.rows.filter(function (r) { return r.pid === id; }); }
+function stat(id) {
+  var days = 0, m = 0;
+  rowsOf(id).forEach(function (r) { if (r.tin) days++; var w = worked_(r); if (w > 0) m += w; });
+  return { days: days, mins: m };
+}
+function isOpen(p, r) { return p.status === 'in' && p.curD === r.d; }
+function missOf(p) {
+  var rs = rowsOf(p.id);
+  for (var i = 0; i < rs.length; i++) if (rs[i].tin && !rs[i].tout && !isOpen(p, rs[i])) return rs[i].d;
+  return '';
+}
+
+function rpc(fn, args) {
+  return fetch(SITE_ATT.url + '/rest/v1/rpc/' + fn, {
+    method: 'POST',
+    headers: { 'apikey': SITE_ATT.key, 'Authorization': 'Bearer ' + SITE_ATT.key, 'Content-Type': 'application/json' },
+    body: JSON.stringify(args)
+  }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); });
+}
+
+function load() {
+  var rg = ym ? monthRange(ym) : ['', ''];
+  return rpc('site_att_m_load', { p_m: M, p_from: rg[0], p_to: rg[1] }).then(function (d) {
+    if (!d || !d.ok) { mode = 'blocked'; render(); return; }
+    D = d; mode = 'ok';
+    if (!ym) ym = d.today.slice(0, 7);
+    if (sel == null || !person(sel)) sel = d.people.length ? d.people[0].id : null;
+    document.title = d.title + ' 출퇴근 관리';
+    render();
+  }).catch(function () { if (mode === 'wait') mode = 'fail'; else { ui.msg = '불러오지 못했습니다. 다시 눌러 주세요.'; ui.bad = true; } render(); });
+}
+
+/* 서버에 적고 다시 읽음 — where: 'side' 는 왼쪽 칸에, 아니면 오른쪽 칸에 답을 보임 */
+function act(fn, args, okMsg, where, after) {
+  if (busy) return;
+  busy = true;
+  rpc(fn, args).then(function (r) {
+    busy = false;
+    if (!r || !r.ok) { mode = 'blocked'; render(); return; }
+    var bad = !!r.err, text = r.err || okMsg || '';
+    if (where === 'side') { ui.sideMsg = text; ui.sideBad = bad; } else { ui.msg = text; ui.bad = bad; }
+    if (!bad && after) after();
+    return load();
+  }).catch(function () {
+    busy = false;
+    if (where === 'side') { ui.sideMsg = '적지 못했습니다. 다시 눌러 주세요.'; ui.sideBad = true; } else { ui.msg = '적지 못했습니다. 다시 눌러 주세요.'; ui.bad = true; }
+    render();
+  });
+}
+
+function tagFor(p) {
+  if (!p.active) return '<i class="tag n">그만 씀</i>';
+  if (p.status === 'in') return '<i class="tag g">일하는 중</i>';
+  var miss = missOf(p);
+  if (miss) return '<i class="tag r">' + md_(miss) + ' 퇴근 안 누름</i>';
+  if (p.status === 'done') return '<i class="tag n">오늘 기록 끝</i>';
+  return '<i class="tag n">오늘 기록 없음</i>';
+}
+
+function editRow(p, r, isNew) {
+  var h = '<tr class="ed"><td colspan="6"><div class="frm">';
+  if (isNew) h += '<label>날짜<input type="date" id="ed" max="' + esc(D.today) + '" value="' + esc(D.today) + '"></label>';
+  h += '<label>출근<input type="time" id="ei" value="' + esc(r ? r.tin : '') + '"></label>';
+  h += '<label>퇴근<input type="time" id="eo" value="' + esc(r ? r.tout : '') + '"></label>';
+  h += '<button class="pill p" id="es">적기</button><button class="pill" id="ec">닫기</button><span class="sp"></span>';
+  if (!isNew) h += ui.ask === 'del'
+    ? '<span class="mut">이 날 기록을 지울까요?</span><button class="pill" id="edy">지우기</button>'
+    : '<button class="lnk s" id="edq" style="padding-right:0">이 날 기록 지우기</button>';
+  h += '</div></td></tr>';
+  return h;
+}
+
+function render() {
+  var a = el('app'), h = '';
+  if (mode === 'wait') { a.innerHTML = '<div class="center"><p>불러오는 중…</p></div>'; return; }
+  if (mode === 'fail') { a.innerHTML = '<div class="center"><h1>불러오지 못했습니다</h1><p>인터넷 연결을 확인하고 새로 고쳐 주세요.</p></div>'; return; }
+  if (mode === 'blocked') { a.innerHTML = '<div class="center"><h1>이 주소는 쓸 수 없습니다</h1><p>관리 주소를 다시 확인해 주세요.</p></div>'; return; }
+
+  var cur = D.today.slice(0, 7), p = sel != null ? person(sel) : null, i;
+  var live = D.people.filter(function (x) { return x.active; }).length;
+  h += '<div class="top"><div><div class="co">' + esc(D.title) + '</div><h1>출퇴근 관리</h1></div>';
+  h += '<div class="tools"><div class="step"><button id="mp">‹</button><b>' + (+ym.slice(0, 4)) + '년 ' + (+ym.slice(5, 7)) + '월</b><button id="mn"' + (ym >= cur ? ' disabled' : '') + '>›</button></div>';
+  h += '<button class="pill p" id="xl"' + (D.rows.length ? '' : ' disabled') + '>엑셀로 받기</button></div></div>';
+
+  h += '<div class="cols"><div class="card side">';
+  h += '<div class="cap">사람 ' + live + '명 · 오늘 ' + esc(label_(D.today)) + '</div>';
+  for (i = 0; i < D.people.length; i++) {
+    var q = D.people[i], s = stat(q.id);
+    h += '<button class="pr' + (q.id === sel ? ' on' : '') + (q.active ? '' : ' off') + '" data-p="' + q.id + '"><div><b>' + esc(q.name) + '</b><span>' + (+ym.slice(5, 7)) + '월 ' + s.days + '일 · ' + dur_(s.mins) + '</span></div>' + tagFor(q) + '</button>';
+  }
+  if (!D.people.length) h += '<div class="empty">아직 사람이 없습니다.<br>아래에서 더해 주세요.</div>';
+  if (ui.add) {
+    h += '<div class="add"><input id="an" maxlength="20" placeholder="이름"><div class="frm"><button class="pill p" id="as">더하기</button><button class="pill" id="ac">닫기</button></div></div>';
+  } else {
+    h += '<button class="lnk" id="ao">+ 사람 더하기</button>';
+  }
+  if (ui.sideMsg) h += '<div class="msg' + (ui.sideBad ? ' bad' : '') + '" style="padding-bottom:8px">' + esc(ui.sideMsg) + '</div>';
+  h += '</div>';
+
+  h += '<div class="card main">';
+  if (!p) {
+    h += '<div class="empty">왼쪽에서 사람을 더하면 그 사람에게 보낼 주소가 생깁니다.</div>';
+  } else {
+    var st = stat(p.id), rs = rowsOf(p.id), url = base() + '?k=' + p.k;
+    h += '<div class="ph"><div><h2>' + esc(p.name) + '</h2><div class="sum">' + (+ym.slice(5, 7)) + '월 · 일한 날 ' + st.days + '일 · 일한 시간 ' + dur_(st.mins) + '</div></div>';
+    if (p.active) h += '<div class="addr"><span>보낼 주소</span><code>…/?k=' + esc(p.k) + '</code><button class="pill" id="cp">' + (ui.copied ? '복사했습니다' : '주소 복사') + '</button></div>';
+    else h += '<div class="addr"><i class="tag n">그만 씀 · 주소가 막혀 있습니다</i></div>';
+    h += '</div>';
+    if (ui.msg) h += '<div class="msg' + (ui.bad ? ' bad' : '') + '" style="padding:0 10px 10px">' + esc(ui.msg) + '</div>';
+    h += '<table><thead><tr><th>날짜</th><th>출근</th><th>퇴근</th><th>일한 시간</th><th>비고</th><th class="act"></th></tr></thead><tbody>';
+    if (ui.edit === 'new') h += editRow(p, null, true);
+    for (i = 0; i < rs.length; i++) {
+      var r = rs[i], w = worked_(r), note = '';
+      if (isOpen(p, r)) note = '<i class="tag g">일하는 중</i>';
+      else if (r.tin && !r.tout) note = '<i class="tag r">퇴근 안 누름</i>';
+      else {
+        var t = (r.tin && r.tout && r.tout < r.tin ? '밤샘' : '') ;
+        var n2 = r.note === '일하는 중' || r.note === '퇴근 안 누름' ? '' : r.note;
+        note = '<span class="mut">' + esc([t, n2].filter(Boolean).join(' · ')) + '</span>';
+      }
+      h += '<tr><td class="nw">' + md_(r.d) + ' ' + dow_(r.d) + '</td><td>' + esc(r.tin || '–') + '</td><td>' + esc(r.tout || '–') + '</td><td class="nw">' + (w >= 0 ? dur_(w) : '–') + '</td><td>' + note + '</td><td class="act"><button data-e="' + r.d + '">' + (ui.edit === r.d ? '닫기' : '고치기') + '</button></td></tr>';
+      if (ui.edit === r.d) h += editRow(p, r, false);
+    }
+    h += '</tbody></table>';
+    if (!rs.length && ui.edit !== 'new') h += '<div class="empty">이 달에는 기록이 없습니다.</div>';
+
+    h += '<div class="foot">';
+    if (ui.ren) {
+      h += '<div class="ask">이름 바꾸기<div class="frm"><input id="rn" maxlength="20" value="' + esc(p.name) + '" style="height:38px;border:1px solid #d2d2d7;border-radius:10px;font-size:15px;padding:0 10px"><button class="pill p" id="rs">바꾸기</button><button class="pill" id="rc">닫기</button></div></div>';
+    } else if (ui.ask === 'rekey') {
+      h += '<div class="ask">주소를 새로 만들면 지금 주소는 바로 막힙니다. ' + esc(p.name) + ' 님께 새 주소를 다시 보내야 합니다.<div class="frm"><button class="pill p" id="ky">새로 만들기</button><button class="pill" id="qc">닫기</button></div></div>';
+    } else if (ui.ask === 'stop') {
+      h += '<div class="ask">' + esc(p.name) + ' 님의 주소를 막습니다. 지금까지의 기록은 그대로 남고, 나중에 다시 쓸 수 있습니다.<div class="frm"><button class="pill p" id="sy">그만 쓰기</button><button class="pill" id="qc">닫기</button></div></div>';
+    } else {
+      h += '<button class="lnk s" id="nw">+ 날짜 더하기</button><button class="lnk s" id="ro">이름 바꾸기</button>';
+      if (p.active) h += '<button class="lnk s" id="kq">주소 새로 만들기</button><button class="lnk s" id="sq">이 사람 그만 쓰기</button>';
+      else h += '<button class="lnk s" id="on">다시 쓰기</button>';
+    }
+    h += '</div>';
+  }
+  h += '</div></div>';
+  a.innerHTML = h;
+  bind(p);
+}
+
+function clearUi() { ui.add = false; ui.edit = ''; ui.ren = false; ui.ask = ''; ui.msg = ''; ui.bad = false; ui.copied = false; ui.sideMsg = ''; ui.sideBad = false; }
+function on(id, fn) { if (el(id)) el(id).onclick = fn; }
+
+function bind(p) {
+  on('mp', function () { ym = shiftMonth(ym, -1); clearUi(); load(); });
+  on('mn', function () { ym = shiftMonth(ym, 1); clearUi(); load(); });
+  on('xl', excel);
+  var prs = document.querySelectorAll('.pr');
+  for (var i = 0; i < prs.length; i++) prs[i].onclick = function () { sel = +this.getAttribute('data-p'); clearUi(); render(); };
+  on('ao', function () { clearUi(); ui.add = true; render(); el('an').focus(); });
+  on('ac', function () { ui.add = false; ui.sideMsg = ''; render(); });
+  on('as', function () {
+    var name = el('an').value;
+    act('site_att_m_person', { p_m: M, p_id: null, p_name: name, p_active: null, p_rekey: null }, '더했습니다. 오른쪽에서 주소를 복사해 보내 주세요.', 'side', function () {
+      ui.add = false; sel = -1; newName = name.replace(/^\s+|\s+$/g, '');
+    });
+  });
+  if (el('an')) el('an').onkeydown = function (e) { if (e.key === 'Enter') el('as').click(); };
+  if (!p) return;
+  on('cp', function () {
+    var url = base() + '?k=' + p.k;
+    function done() { ui.copied = true; render(); setTimeout(function () { ui.copied = false; if (el('cp')) el('cp').innerHTML = '주소 복사'; }, 2500); }
+    function old() { var t = document.createElement('textarea'); t.value = url; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) {} document.body.removeChild(t); done(); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, old); else old();
+  });
+  var eb = document.querySelectorAll('td.act button');
+  for (var j = 0; j < eb.length; j++) eb[j].onclick = function () { var d = this.getAttribute('data-e'); var was = ui.edit; clearUi(); ui.edit = was === d ? '' : d; render(); };
+  on('nw', function () { clearUi(); ui.edit = 'new'; render(); });
+  on('ec', function () { ui.edit = ''; ui.ask = ''; render(); });
+  on('es', function () {
+    var d = ui.edit === 'new' ? el('ed').value : ui.edit;
+    if (!el('ei').value && !el('eo').value) { ui.msg = '시간을 적어 주세요.'; ui.bad = true; render(); return; }
+    act('site_att_m_fix', { p_m: M, p_pid: p.id, p_d: d, p_tin: el('ei').value, p_tout: el('eo').value }, '고쳐 적었습니다.', 'main', function () { ui.edit = ''; ui.ask = ''; });
+  });
+  on('edq', function () { ui.ask = 'del'; render(); });
+  on('edy', function () {
+    act('site_att_m_fix', { p_m: M, p_pid: p.id, p_d: ui.edit, p_tin: '', p_tout: '' }, '지웠습니다.', 'main', function () { ui.edit = ''; ui.ask = ''; });
+  });
+  on('ro', function () { clearUi(); ui.ren = true; render(); el('rn').focus(); });
+  on('rc', function () { ui.ren = false; render(); });
+  on('rs', function () {
+    act('site_att_m_person', { p_m: M, p_id: p.id, p_name: el('rn').value, p_active: null, p_rekey: null }, '이름을 바꿨습니다.', 'main', function () { ui.ren = false; });
+  });
+  on('kq', function () { clearUi(); ui.ask = 'rekey'; render(); });
+  on('sq', function () { clearUi(); ui.ask = 'stop'; render(); });
+  on('qc', function () { ui.ask = ''; render(); });
+  on('ky', function () {
+    act('site_att_m_person', { p_m: M, p_id: p.id, p_name: null, p_active: null, p_rekey: true }, '주소를 새로 만들었습니다. 새 주소를 복사해 보내 주세요.', 'main', function () { ui.ask = ''; });
+  });
+  on('sy', function () {
+    act('site_att_m_person', { p_m: M, p_id: p.id, p_name: null, p_active: false, p_rekey: null }, '주소를 막았습니다.', 'main', function () { ui.ask = ''; });
+  });
+  on('on', function () {
+    act('site_att_m_person', { p_m: M, p_id: p.id, p_name: null, p_active: true, p_rekey: null }, '다시 쓸 수 있게 했습니다.', 'main');
+  });
+}
+
+/* 새로 더한 사람을 바로 고름 */
+var newName = '';
+var load0 = load;
+load = function () {
+  return load0().then(function () {
+    if (newName && D) {
+      for (var i = 0; i < D.people.length; i++) if (D.people[i].name === newName) { sel = D.people[i].id; break; }
+      newName = '';
+      render();
+    }
+  });
+};
+
+/* 엑셀 — 「전체」 한 장 + 사람마다 한 장 */
+function book() {
+  var H = function (a) { return a.map(function (t) { return { t: t, s: 1 }; }); };
+  function cells(r, withName, name) {
+    var w = worked_(r), note = r.note === '일하는 중' ? '' : r.note;
+    if (r.tin && !r.tout && !note) note = '퇴근 안 누름';
+    var c = [{ v: utc_(r.d) / 86400000 + 25569, s: 5 }, dow_(r.d)];
+    if (withName) c.push(name);
+    c.push(r.tin ? { v: mins_(r.tin) / 1440, s: 2 } : null, r.tout ? { v: mins_(r.tout) / 1440, s: 2 } : null, w >= 0 ? { v: w / 1440, s: 3 } : null, note);
+    return c;
+  }
+  var names = {}, sheets = [], all = [H(['날짜', '요일', '이름', '출근', '퇴근', '일한 시간', '비고'])];
+  D.people.forEach(function (p) { names[p.id] = p.name; });
+  D.rows.slice().sort(function (a, b) { return a.d < b.d ? -1 : a.d > b.d ? 1 : (names[a.pid] < names[b.pid] ? -1 : 1); })
+    .forEach(function (r) { all.push(cells(r, true, names[r.pid])); });
+  sheets.push({ name: '전체', cols: [12, 6, 12, 8, 8, 10, 46], rows: all });
+  D.people.forEach(function (p) {
+    var rs = rowsOf(p.id).slice().reverse();
+    if (!rs.length) return;
+    var st = stat(p.id), rows = [H(['날짜', '요일', '출근', '퇴근', '일한 시간', '비고'])];
+    rs.forEach(function (r) { rows.push(cells(r, false)); });
+    rows.push([]);
+    rows.push([{ t: '합계', s: 1 }, { t: st.days + '일', s: 1 }, null, null, { v: st.mins / 1440, s: 4 }]);
+    sheets.push({ name: p.name, cols: [12, 6, 8, 8, 10, 46], rows: rows });
+  });
+  return sheets;
+}
+function excel() {
+  var data = SiteXlsx.make(book());
+  var blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = D.title + '_출퇴근_' + ym + '.xlsx';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+}
+
+render();
+if (!M) { mode = 'blocked'; render(); } else load();
+document.addEventListener('visibilitychange', function () { if (!document.hidden && mode === 'ok' && !busy && !ui.add && !ui.edit && !ui.ren && !ui.ask) load(); });
+</script>
+</body>
+</html>

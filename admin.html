@@ -55,6 +55,7 @@ td.nw{white-space:nowrap}
 td.act,th.act{text-align:right;width:70px}
 td.act button{border:0;background:none;color:#0066cc;font-size:14px;white-space:nowrap}
 .mut{color:#86868b;font-size:13px}
+tr.sub{display:none}
 .foot{padding-top:2px}
 .empty{padding:26px 10px;color:#6e6e73;text-align:center}
 tr.ed td{background:#f5f5f7;padding:12px 14px}
@@ -80,6 +81,11 @@ tr.ed td{background:#f5f5f7;padding:12px 14px}
   td,th{padding-left:6px;padding-right:6px}
   td{font-size:14px}
   code{display:none}
+  .nt{display:none}
+  tr.sub{display:table-row}
+  tr.sub td{padding-top:0}
+  tr.hasn td{border-bottom:0;padding-bottom:4px}
+  td.act,th.act{width:auto}
 }
 </style>
 </head>
@@ -221,7 +227,7 @@ function render() {
     else h += '<div class="addr"><i class="tag n">그만 씀 · 주소가 막혀 있습니다</i></div>';
     h += '</div>';
     if (ui.msg) h += '<div class="msg' + (ui.bad ? ' bad' : '') + '" style="padding:0 10px 10px">' + esc(ui.msg) + '</div>';
-    h += '<table><thead><tr><th>날짜</th><th>출근</th><th>퇴근</th><th>일한 시간</th><th>비고</th><th class="act"></th></tr></thead><tbody>';
+    h += '<table><thead><tr><th>날짜</th><th>출근</th><th>퇴근</th><th>일한 시간</th><th class="nt">비고</th><th class="act"></th></tr></thead><tbody>';
     if (ui.edit === 'new') h += editRow(p, null, true);
     for (i = 0; i < rs.length; i++) {
       var r = rs[i], w = worked_(r), note = '';
@@ -230,9 +236,11 @@ function render() {
       else {
         var t = (r.tin && r.tout && r.tout < r.tin ? '밤샘' : '') ;
         var n2 = r.note === '일하는 중' || r.note === '퇴근 안 누름' ? '' : r.note;
-        note = '<span class="mut">' + esc([t, n2].filter(Boolean).join(' · ')) + '</span>';
+        var nt = [t, n2].filter(Boolean).join(' · ');
+        note = nt ? '<span class="mut">' + esc(nt) + '</span>' : '';
       }
-      h += '<tr><td class="nw">' + md_(r.d) + ' ' + dow_(r.d) + '</td><td>' + esc(r.tin || '–') + '</td><td>' + esc(r.tout || '–') + '</td><td class="nw">' + (w >= 0 ? dur_(w) : '–') + '</td><td>' + note + '</td><td class="act"><button data-e="' + r.d + '">' + (ui.edit === r.d ? '닫기' : '고치기') + '</button></td></tr>';
+      h += '<tr' + (note ? ' class="hasn"' : '') + '><td class="nw">' + md_(r.d) + ' ' + dow_(r.d) + '</td><td>' + esc(r.tin || '–') + '</td><td>' + esc(r.tout || '–') + '</td><td class="nw">' + (w >= 0 ? dur_(w) : '–') + '</td><td class="nt">' + note + '</td><td class="act"><button data-e="' + r.d + '">' + (ui.edit === r.d ? '닫기' : '고치기') + '</button></td></tr>';
+      if (note) h += '<tr class="sub"><td colspan="6">' + note + '</td></tr>';
       if (ui.edit === r.d) h += editRow(p, r, false);
     }
     h += '</tbody></table>';
